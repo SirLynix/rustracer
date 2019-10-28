@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vec3 {
@@ -29,6 +29,13 @@ impl Vec3 {
         self.x /= length;
         self.y /= length;
         self.z /= length;
+    }
+
+    pub fn normalize_out_length(&mut self, length: &mut f32) {
+        *length = self.length();
+        self.x /= *length;
+        self.y /= *length;
+        self.z /= *length;
     }
 
     pub fn squared_length(&self) -> f32 {
@@ -156,6 +163,18 @@ impl Mul<f32> for &Vec3 {
     }
 }
 
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            x: other.x * self,
+            y: other.y * self,
+            z: other.z * self,
+        }
+    }
+}
+
 impl Mul<&Vec3> for f32 {
     type Output = Vec3;
 
@@ -164,6 +183,30 @@ impl Mul<&Vec3> for f32 {
             x: other.x * self,
             y: other.y * self,
             z: other.z * self,
+        }
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Vec3 {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
+impl Neg for &Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Vec3 {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
         }
     }
 }

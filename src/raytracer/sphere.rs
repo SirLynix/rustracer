@@ -1,21 +1,31 @@
 use super::hittable::Hittable;
 use super::ray::Ray;
 use super::vec3::Vec3;
-use std::cmp::Ordering;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Sphere {
     center: Vec3,
+    color: (u8, u8, u8),
     radius: f32,
+    reflection_factor: f32,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Sphere {
-        Sphere { center, radius }
+    pub fn new(center: Vec3, radius: f32, color: (u8, u8, u8), reflection_factor: f32) -> Sphere {
+        Sphere {
+            center,
+            radius,
+            color,
+            reflection_factor,
+        }
     }
 
     pub fn get_center(&self) -> Vec3 {
         self.center
+    }
+
+    pub fn get_color(&self) -> (u8, u8, u8) {
+        self.color
     }
 
     pub fn get_radius(&self) -> f32 {
@@ -54,5 +64,13 @@ impl Hittable for Sphere {
         }
 
         false
+    }
+
+    fn get_color(&self, position: &Vec3) -> (u8, u8, u8) {
+        self.get_color()
+    }
+
+    fn get_reflection_factor(&self) -> f32 {
+        self.reflection_factor
     }
 }

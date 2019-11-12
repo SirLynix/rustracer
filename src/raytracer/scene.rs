@@ -6,7 +6,7 @@ use super::vec3::Vec3;
 
 pub struct Scene {
     lights: Vec<Light>,
-    objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Box<dyn Hittable>>,
 }
 
 fn background_color(ray: &Ray) -> (f32, f32, f32) {

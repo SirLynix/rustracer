@@ -212,7 +212,7 @@ fn main() {
 
                     println!("Rendering took {}s", duration.as_secs_f32());
 
-                    save_as_png("raytracer.png", &screen_buffer);
+                    save_as_png("raytracer.png", WIDTH as u32, HEIGHT as u32, &screen_buffer);
                 }
             }
         }
@@ -221,19 +221,19 @@ fn main() {
     }
 }
 
-fn save_as_png(file_name: &str, buffer: &Vec<u32>) {
+fn save_as_png(file_name: &str, width: u32, height: u32, buffer: &Vec<u32>) {
     let path = Path::new(file_name);
     let file = File::create(path).unwrap();
     let ref mut w = BufWriter::new(file);
 
-    let mut encoder = png::Encoder::new(w, WIDTH as u32, HEIGHT as u32); // Width is 2 pixels and height is 1.
+    let mut encoder = png::Encoder::new(w, width, height); // Width is 2 pixels and height is 1.
     encoder.set_color(png::ColorType::RGB);
     encoder.set_depth(png::BitDepth::Eight);
 
     let mut writer = encoder.write_header().unwrap();
 
     let mut png_data = vec![0u8; 0];
-    png_data.reserve_exact(WIDTH * HEIGHT * 3);
+    png_data.reserve_exact((width * height * 3) as usize);
 
     for value in buffer.iter() {
         let r = ((value & 0x00FF0000) >> 16) as u8;

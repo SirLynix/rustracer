@@ -21,7 +21,6 @@ use raytracer::vec3::Vec3;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::time::Instant;
-use threadpool::ThreadPool;
 
 const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
@@ -101,8 +100,7 @@ fn main() {
     let box_count_x: usize = WIDTH / BOX_SIDE + if WIDTH % BOX_SIDE != 0 { 1 } else { 0 };
     let box_count_y: usize = HEIGHT / BOX_SIDE + if HEIGHT % BOX_SIDE != 0 { 1 } else { 0 };
 
-    let mut boxes: Vec<usize> = (0..box_count_x * box_count_y).collect();
-    rng.shuffle(&mut boxes);
+    let boxes: Vec<usize> = (0..box_count_x * box_count_y).collect();
 
     let pool = threadpool::Builder::new()
         .thread_name(String::from("Raytracer"))

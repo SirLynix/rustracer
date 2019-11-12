@@ -56,7 +56,7 @@ fn main() {
     scene.add_object(Box::new(TexturedSphere::new(
         Vec3::new(0.0, -10000.0, -1.0),
         10000.0,
-        (255u8, 255u8, 255u8),
+        (1.0, 1.0, 1.0),
         0.2,
     )));
 
@@ -64,7 +64,7 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(-1.5, 0.5, -1.0),
         0.5,
-        (0u8, 0u8, 0u8),
+        (0.0, 0.0, 0.0),
         0.9,
     )));
 
@@ -72,7 +72,7 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(0.0, 0.75, -1.5),
         0.75,
-        (255u8, 255u8, 0u8),
+        (1.0, 1.0, 0.0),
         0.5,
     )));
 
@@ -80,7 +80,7 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(1.5, 0.5, -1.0),
         0.5,
-        (255u8, 0u8, 0u8),
+        (1.0, 0.0, 0.0),
         0.2,
     )));
 
@@ -113,9 +113,9 @@ fn main() {
 
         for y in min_y..max_y {
             for x in min_x..max_x {
-                let mut color_r = 0u32;
-                let mut color_g = 0u32;
-                let mut color_b = 0u32;
+                let mut color_r = 0f32;
+                let mut color_g = 0f32;
+                let mut color_b = 0f32;
                 for i in 0..RAY_PER_PIXEL {
                     let factor_x = (x as f32 + random_offsets[random_offset + 0]) / WIDTH as f32;
                     let factor_y = (y as f32 + random_offsets[random_offset + 1]) / HEIGHT as f32;
@@ -127,16 +127,20 @@ fn main() {
                     let ray = camera.get_ray(factor_x, factor_y);
                     let (_, r, g, b) = scene.trace(ray, MAX_ITERATION);
 
-                    color_r += r as u32;
-                    color_g += g as u32;
-                    color_b += b as u32;
+                    color_r += r;
+                    color_g += g;
+                    color_b += b;
                 }
 
-                color_r /= RAY_PER_PIXEL;
-                color_g /= RAY_PER_PIXEL;
-                color_b /= RAY_PER_PIXEL;
-                buffer[(y * WIDTH + x) as usize] =
-                    color(color_r as u8, color_g as u8, color_b as u8);
+                color_r /= RAY_PER_PIXEL as f32;
+                color_g /= RAY_PER_PIXEL as f32;
+                color_b /= RAY_PER_PIXEL as f32;
+
+                let u8_r = (color_r * 255.0).min(255.0) as u8;
+                let u8_g = (color_g * 255.0).min(255.0) as u8;
+                let u8_b = (color_b * 255.0).min(255.0) as u8;
+
+                buffer[(y * WIDTH + x) as usize] = color(u8_r, u8_g, u8_b);
             }
         }
 

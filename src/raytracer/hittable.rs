@@ -10,7 +10,7 @@ pub struct HitInfo {
 pub trait Hittable {
     fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32>;
 
-    fn get_color(&self, position: &Vec3) -> (u8, u8, u8);
+    fn get_color(&self, position: &Vec3) -> (f32, f32, f32);
 
     fn get_reflection_factor(&self) -> f32;
 }

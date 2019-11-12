@@ -6,13 +6,18 @@ use super::vec3::Vec3;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Sphere {
     center: Vec3,
-    color: (u8, u8, u8),
+    color: (f32, f32, f32),
     radius: f32,
     reflection_factor: f32,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32, color: (u8, u8, u8), reflection_factor: f32) -> Sphere {
+    pub fn new(
+        center: Vec3,
+        radius: f32,
+        color: (f32, f32, f32),
+        reflection_factor: f32,
+    ) -> Sphere {
         Sphere {
             center,
             radius,
@@ -25,7 +30,7 @@ impl Sphere {
         self.center
     }
 
-    pub fn get_color(&self) -> (u8, u8, u8) {
+    pub fn get_color(&self) -> (f32, f32, f32) {
         self.color
     }
 
@@ -75,7 +80,7 @@ impl Hittable for Sphere {
         None
     }
 
-    fn get_color(&self, position: &Vec3) -> (u8, u8, u8) {
+    fn get_color(&self, position: &Vec3) -> (f32, f32, f32) {
         self.get_color()
     }
 

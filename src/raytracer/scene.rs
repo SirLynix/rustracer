@@ -9,7 +9,7 @@ pub struct Scene {
     objects: Vec<Box<dyn Hittable>>,
 }
 
-fn background_color(ray: &Ray) -> (u8, u8, u8) {
+fn background_color(ray: &Ray) -> (f32, f32, f32) {
     let unit_x = Vec3::new(1.0, 0.0, 0.0);
     let unit_y = Vec3::new(0.0, 1.0, 0.0);
 
@@ -20,7 +20,7 @@ fn background_color(ray: &Ray) -> (u8, u8, u8) {
     let g = (dot_x * 100.0).min(255.0);
     let b = (100.0 + (dot_y * 100.0)).min(255.0);
 
-    (r as u8, g as u8, b as u8)
+    (r / 255.0, g / 255.0, b / 255.0)
 }
 
 fn reflect(r: &Vec3, n: &Vec3) -> Vec3 {
@@ -63,7 +63,7 @@ impl Scene {
         }
     }
 
-    pub fn trace(&self, ray: Ray, max_iter: u32) -> (f32, u8, u8, u8) {
+    pub fn trace(&self, ray: Ray, max_iter: u32) -> (f32, f32, f32, f32) {
         let mut closest_object: Option<usize> = None;
         let mut closest_distance = std::f32::INFINITY;
         let mut closest_hitinfo = HitInfo {
@@ -97,7 +97,7 @@ impl Scene {
 
                 let reflection_factor = object.get_reflection_factor();
 
-                let (mut r, mut g, mut b): (u8, u8, u8);
+                let (mut r, mut g, mut b): (f32, f32, f32);
                 if reflection_factor > 0.001 {
                     closest_hitinfo.normal.normalize();
                     let reflection = reflect(&-ray.direction(), &closest_hitinfo.normal);
@@ -117,9 +117,9 @@ impl Scene {
                         final_color_b += reflected_b as f32 * reflection_factor;
                     }
 
-                    r = final_color_r.min(255.0) as u8;
-                    g = final_color_g.min(255.0) as u8;
-                    b = final_color_b.min(255.0) as u8;
+                    r = final_color_r;
+                    g = final_color_g;
+                    b = final_color_b;
                 } else {
                     r = o_r;
                     g = o_g;
@@ -133,15 +133,22 @@ impl Scene {
 
                         direction.normalize_out_length(&mut length);
 
+                        let diffuse_factor =
+                            Vec3::dot_product(&direction, &closest_hitinfo.normal).max(0.0);
+
+                        r *= diffuse_factor;
+                        g *= diffuse_factor;
+                        b *= diffuse_factor;
+
                         match self.intersect(Ray::new(
                             closest_hitinfo.position + direction * 0.01,
                             direction,
                         )) {
                             Some(distance) => {
                                 if distance < length {
-                                    r /= 10;
-                                    g /= 10;
-                                    b /= 10;
+                                    r *= 0.1;
+                                    g *= 0.1;
+                                    b *= 0.1;
                                 }
                             }
                             _ => (),

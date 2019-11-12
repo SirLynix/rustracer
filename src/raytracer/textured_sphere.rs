@@ -13,7 +13,7 @@ impl TexturedSphere {
     pub fn new(
         center: Vec3,
         radius: f32,
-        color: (u8, u8, u8),
+        color: (f32, f32, f32),
         reflection_factor: f32,
     ) -> TexturedSphere {
         TexturedSphere {
@@ -27,7 +27,7 @@ impl Hittable for TexturedSphere {
         self.sphere.compute_hit(ray, hitinfo)
     }
 
-    fn get_color(&self, position: &Vec3) -> (u8, u8, u8) {
+    fn get_color(&self, position: &Vec3) -> (f32, f32, f32) {
         let up = Vec3::new(0.0, 1.0, 0.0);
 
         let size = 1.0;
@@ -37,7 +37,7 @@ impl Hittable for TexturedSphere {
         if (position.x.rem_euclid(size) > size / 2.0) ^ is_even {
             self.sphere.get_color()
         } else {
-            (0, 0, 0)
+            (0.0, 0.0, 0.0)
         }
     }
 

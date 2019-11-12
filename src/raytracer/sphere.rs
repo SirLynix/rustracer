@@ -1,3 +1,4 @@
+use super::hittable::HitInfo;
 use super::hittable::Hittable;
 use super::ray::Ray;
 use super::vec3::Vec3;
@@ -34,7 +35,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn compute_hit(&self, ray: &Ray, t: &mut f32, hitpoint: &mut Vec3, normal: &mut Vec3) -> bool {
+    fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
         let ray_to_sphere = ray.origin() - self.center;
         let a = Vec3::dot_product(ray.direction(), ray.direction());
         let b = Vec3::dot_product(ray.direction(), &ray_to_sphere);
@@ -42,28 +43,36 @@ impl Hittable for Sphere {
 
         let delta = (b * b) - a * c;
 
-        let mut compute_result = |param: f32| {
-            *t = param;
-            *hitpoint = ray.point_at(param);
-            *normal = *hitpoint - &self.center;
+        let compute_result = |param: f32, hit_info: &mut HitInfo| {
+            hit_info.position = ray.point_at(param);
+            hit_info.normal = hit_info.position - &self.center;
         };
 
         if delta >= 0.0 {
             let sqr_delta = delta.sqrt();
-            let temp = (-b - sqr_delta) / a;
-            if temp > 0.0 {
-                compute_result(temp);
-                return true;
+            let distance = (-b - sqr_delta) / a;
+
+            if distance > 0.0 {
+                match hitinfo {
+                    Some(hit_info) => compute_result(distance, hit_info),
+                    _ => (),
+                }
+
+                return Some(distance);
             }
 
-            let temp = (-b + sqr_delta) / a;
-            if temp > 0.0 {
-                compute_result(temp);
-                return true;
+            let distance = (-b + sqr_delta) / a;
+            if distance > 0.0 {
+                match hitinfo {
+                    Some(hit_info) => compute_result(distance, hit_info),
+                    _ => (),
+                }
+
+                return Some(distance);
             }
         }
 
-        false
+        None
     }
 
     fn get_color(&self, position: &Vec3) -> (u8, u8, u8) {

@@ -5,7 +5,7 @@ extern crate minifb;
 extern crate png;
 extern crate rand;
 
-use minifb::{Key, Scale, Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions};
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
@@ -146,8 +146,6 @@ fn main() {
     let duration = start.elapsed();
 
     println!("Rendering took {}s", duration.as_secs_f32());
-
-    window.update_with_buffer(&buffer).unwrap();
 
     // Save as PNG
     let path = Path::new(r"raytracer.png");

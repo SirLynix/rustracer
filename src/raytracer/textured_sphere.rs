@@ -1,3 +1,4 @@
+use super::hittable::HitInfo;
 use super::hittable::Hittable;
 use super::ray::Ray;
 use super::sphere::Sphere;
@@ -22,8 +23,8 @@ impl TexturedSphere {
 }
 
 impl Hittable for TexturedSphere {
-    fn compute_hit(&self, ray: &Ray, t: &mut f32, hitpoint: &mut Vec3, normal: &mut Vec3) -> bool {
-        self.sphere.compute_hit(ray, t, hitpoint, normal)
+    fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
+        self.sphere.compute_hit(ray, hitinfo)
     }
 
     fn get_color(&self, position: &Vec3) -> (u8, u8, u8) {

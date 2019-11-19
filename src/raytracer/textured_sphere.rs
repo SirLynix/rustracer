@@ -15,9 +15,16 @@ impl TexturedSphere {
         radius: f32,
         color: (f32, f32, f32),
         reflection_factor: f32,
+        transparency_factor: f32,
     ) -> TexturedSphere {
         TexturedSphere {
-            sphere: Sphere::new(center, radius, color, reflection_factor),
+            sphere: Sphere::new(
+                center,
+                radius,
+                color,
+                reflection_factor,
+                transparency_factor,
+            ),
         }
     }
 }
@@ -41,7 +48,11 @@ impl Geometry for TexturedSphere {
         }
     }
 
-    fn get_reflection_factor(&self) -> f32 {
+    fn get_reflection_factor(&self) -> Option<f32> {
         self.sphere.get_reflection_factor()
+    }
+
+    fn get_transparency_factor(&self) -> std::option::Option<f32> {
+        self.sphere.get_transparency_factor()
     }
 }

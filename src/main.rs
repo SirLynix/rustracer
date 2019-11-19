@@ -26,7 +26,7 @@ const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
 const BOX_SIDE: usize = 96;
 const MAX_ITERATION: u32 = 5;
-const RAY_PER_PIXEL: u32 = 100;
+const RAY_PER_PIXEL: u32 = 1;
 const RANDOM_OFFSET_COUNT: usize = RAY_PER_PIXEL as usize * 100;
 
 fn color(r: u8, g: u8, b: u8) -> u32 {
@@ -64,6 +64,7 @@ fn main() {
         10000.0,
         (1.0, 1.0, 1.0),
         0.2,
+        0.0,
     )));
 
     // Left - Black
@@ -72,14 +73,16 @@ fn main() {
         0.5,
         (0.0, 0.0, 0.0),
         0.9,
+        0.0,
     )));
 
     // Middle - Yellow
     scene.add_object(Box::new(Sphere::new(
-        Vec3::new(0.0, 0.75, -1.5),
+        Vec3::new(0.0, 0.75, -2.5),
         0.75,
         (1.0, 1.0, 0.0),
         0.5,
+        1.0,
     )));
 
     // Right - Red
@@ -88,6 +91,7 @@ fn main() {
         0.5,
         (1.0, 0.0, 0.0),
         0.2,
+        0.0,
     )));
 
     let scene = Arc::new(scene);

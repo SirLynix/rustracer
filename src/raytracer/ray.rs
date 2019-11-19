@@ -17,11 +17,11 @@ impl Ray {
         }
     }
 
-    pub fn direction(&self) -> &Vec3 {
+    pub fn get_direction(&self) -> &Vec3 {
         &self.direction
     }
 
-    pub fn origin(&self) -> &Vec3 {
+    pub fn get_origin(&self) -> &Vec3 {
         &self.origin
     }
 

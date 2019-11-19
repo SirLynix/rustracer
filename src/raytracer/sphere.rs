@@ -8,7 +8,8 @@ pub struct Sphere {
     center: Vec3,
     color: (f32, f32, f32),
     radius: f32,
-    reflection_factor: f32,
+    reflection_factor: Option<f32>,
+    transparency_factor: Option<f32>,
 }
 
 impl Sphere {
@@ -17,12 +18,22 @@ impl Sphere {
         radius: f32,
         color: (f32, f32, f32),
         reflection_factor: f32,
+        transparency_factor: f32,
     ) -> Sphere {
         Sphere {
             center,
             radius,
             color,
-            reflection_factor,
+            reflection_factor: if reflection_factor > 0.001 {
+                Some(reflection_factor)
+            } else {
+                None
+            },
+            transparency_factor: if transparency_factor > 0.001 {
+                Some(transparency_factor)
+            } else {
+                None
+            },
         }
     }
 
@@ -41,9 +52,9 @@ impl Sphere {
 
 impl Geometry for Sphere {
     fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
-        let ray_to_sphere = ray.origin() - self.center;
-        let a = Vec3::dot_product(ray.direction(), ray.direction());
-        let b = Vec3::dot_product(ray.direction(), &ray_to_sphere);
+        let ray_to_sphere = ray.get_origin() - self.center;
+        let a = Vec3::dot_product(ray.get_direction(), ray.get_direction());
+        let b = Vec3::dot_product(ray.get_direction(), &ray_to_sphere);
         let c = Vec3::dot_product(&ray_to_sphere, &ray_to_sphere) - self.radius * self.radius;
 
         let delta = (b * b) - a * c;
@@ -84,7 +95,11 @@ impl Geometry for Sphere {
         self.get_color()
     }
 
-    fn get_reflection_factor(&self) -> f32 {
+    fn get_reflection_factor(&self) -> Option<f32> {
         self.reflection_factor
+    }
+
+    fn get_transparency_factor(&self) -> Option<f32> {
+        self.transparency_factor
     }
 }

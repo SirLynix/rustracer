@@ -10,14 +10,18 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(position: Vec3, direction: Vec3, fovx: f32, fovy: f32) -> Camera {
-        let left_corner = Vec3::new(-fovx / 2.0, fovy / 2.0, -1.0);
-        let horizontal = Vec3::new(fovx, 0.0, 0.0);
-        let vertical = Vec3::new(0.0, -fovy, 0.0);
+    pub fn new(position: Vec3, direction: Vec3, aspect: f32, fovy: f32) -> Camera {
+        let half_theta = fovy.to_radians() / 2.0;
+        let half_height = half_theta.tan();
+        let half_width = half_height * aspect;
+
+        let left_corner = Vec3::new(-half_width, half_height, -1.0);
+        let horizontal = Vec3::new(2.0 * half_width, 0.0, 0.0);
+        let vertical = Vec3::new(0.0, -2.0 * half_height, 0.0);
 
         Camera {
             direction,
-            left_corner: Vec3::new(-fovx / 2.0, fovy / 2.0, -1.0),
+            left_corner,
             horizontal,
             position,
             vertical,

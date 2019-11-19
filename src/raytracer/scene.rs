@@ -63,6 +63,21 @@ impl Scene {
         }
     }
 
+    pub fn intersect_dist(&self, ray: Ray, dist: f32) -> bool {
+        for (i, object) in self.objects.iter().enumerate() {
+            match object.compute_hit(&ray, None) {
+                Some(hit_distance) => {
+                    if hit_distance < dist {
+                        return true;
+                    }
+                }
+                None => (),
+            }
+        }
+
+        false
+    }
+
     pub fn trace(&self, ray: Ray, max_iter: u32) -> (f32, f32, f32, f32) {
         let mut closest_object: Option<usize> = None;
         let mut closest_distance = std::f32::INFINITY;
@@ -140,18 +155,13 @@ impl Scene {
                         g *= diffuse_factor;
                         b *= diffuse_factor;
 
-                        match self.intersect(Ray::new(
-                            closest_hitinfo.position + direction * 0.01,
-                            direction,
-                        )) {
-                            Some(distance) => {
-                                if distance < length {
-                                    r *= 0.1;
-                                    g *= 0.1;
-                                    b *= 0.1;
-                                }
-                            }
-                            _ => (),
+                        if self.intersect_dist(
+                            Ray::new(closest_hitinfo.position + direction * 0.01, direction),
+                            length,
+                        ) {
+                            r *= 0.1;
+                            g *= 0.1;
+                            b *= 0.1;
                         }
                     }
                 }

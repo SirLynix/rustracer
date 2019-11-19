@@ -47,7 +47,12 @@ fn main() {
     let origin = Vec3::new(0.0, 0.5, 0.0);
     let direction = Vec3::new(0.0, 0.0, -1.0);
 
-    let camera = Arc::new(Camera::new(origin, direction, WIDTH as f32 / HEIGHT as f32, 90.0));
+    let camera = Arc::new(Camera::new(
+        origin,
+        direction,
+        WIDTH as f32 / HEIGHT as f32,
+        90.0,
+    ));
 
     let mut scene = Scene::new();
 

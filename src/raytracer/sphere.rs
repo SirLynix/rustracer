@@ -1,5 +1,5 @@
-use super::hittable::HitInfo;
-use super::hittable::Hittable;
+use super::geometry::Geometry;
+use super::geometry::HitInfo;
 use super::ray::Ray;
 use super::vec3::Vec3;
 
@@ -39,7 +39,7 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
+impl Geometry for Sphere {
     fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
         let ray_to_sphere = ray.origin() - self.center;
         let a = Vec3::dot_product(ray.direction(), ray.direction());

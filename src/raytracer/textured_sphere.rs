@@ -1,5 +1,5 @@
-use super::hittable::HitInfo;
-use super::hittable::Hittable;
+use super::geometry::Geometry;
+use super::geometry::HitInfo;
 use super::ray::Ray;
 use super::sphere::Sphere;
 use super::vec3::Vec3;
@@ -22,7 +22,7 @@ impl TexturedSphere {
     }
 }
 
-impl Hittable for TexturedSphere {
+impl Geometry for TexturedSphere {
     fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
         self.sphere.compute_hit(ray, hitinfo)
     }

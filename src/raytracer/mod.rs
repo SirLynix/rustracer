@@ -1,5 +1,5 @@
 pub mod camera;
-pub mod hittable;
+pub mod geometry;
 pub mod light;
 pub mod ray;
 pub mod scene;

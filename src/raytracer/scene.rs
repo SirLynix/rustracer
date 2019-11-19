@@ -1,12 +1,12 @@
-use super::hittable::HitInfo;
-use super::hittable::Hittable;
+use super::geometry::Geometry;
+use super::geometry::HitInfo;
 use super::light::Light;
 use super::ray::Ray;
 use super::vec3::Vec3;
 
 pub struct Scene {
     lights: Vec<Light>,
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Box<dyn Geometry>>,
 }
 
 fn background_color(ray: &Ray) -> (f32, f32, f32) {
@@ -27,6 +27,16 @@ fn reflect(r: &Vec3, n: &Vec3) -> Vec3 {
     2.0 * n * Vec3::dot_product(&n, &r) - &r
 }
 
+fn refract(u: &Vec3, n: &Vec3, ratio: f32) -> Option<Vec3> {
+    let dt = Vec3::dot_product(u, n);
+    let k = 1.0 - ratio * ratio * (1.0 - dt * dt);
+    if k > 0.0 {
+        Some(ratio * u - &((ratio * dt + k.sqrt()) * n))
+    } else {
+        None
+    }
+}
+
 impl Scene {
     pub fn new() -> Scene {
         Scene {
@@ -39,7 +49,7 @@ impl Scene {
         self.lights.push(light);
     }
 
-    pub fn add_object(&mut self, object: Box<dyn Hittable>) {
+    pub fn add_object(&mut self, object: Box<dyn Geometry>) {
         self.objects.push(object);
     }
 

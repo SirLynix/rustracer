@@ -7,7 +7,7 @@ pub struct HitInfo {
     pub normal: Vec3,
 }
 
-pub trait Hittable: Sync + Send {
+pub trait Geometry: Sync + Send {
     fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32>;
 
     fn get_color(&self, position: &Vec3) -> (f32, f32, f32);

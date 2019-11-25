@@ -173,7 +173,7 @@ impl Scene {
                         if max_iter > 0 {
                             let reflection_origin =
                                 if Vec3::dot_product(&reflection, &closest_hitinfo.normal) < 0.0 {
-                                    closest_hitinfo.position - &(reflection * 0.01)
+                                    closest_hitinfo.position - (reflection * 0.01)
                                 } else {
                                     closest_hitinfo.position + reflection * 0.01
                                 };

@@ -233,7 +233,7 @@ fn main() {
 fn save_as_png(file_name: &str, width: u32, height: u32, buffer: &Vec<u32>) {
     let path = Path::new(file_name);
     let file = File::create(path).unwrap();
-    let ref mut w = BufWriter::new(file);
+    let w = &mut BufWriter::new(file);
 
     let mut encoder = png::Encoder::new(w, width, height); // Width is 2 pixels and height is 1.
     encoder.set_color(png::ColorType::RGB);
@@ -245,9 +245,9 @@ fn save_as_png(file_name: &str, width: u32, height: u32, buffer: &Vec<u32>) {
     png_data.reserve_exact((width * height * 3) as usize);
 
     for value in buffer.iter() {
-        let r = ((value & 0x00FF0000) >> 16) as u8;
-        let g = ((value & 0x0000FF00) >> 8) as u8;
-        let b = ((value & 0x000000FF) >> 0) as u8;
+        let r = ((value & 0x00FF_0000) >> 16) as u8;
+        let g = ((value & 0x0000_FF00) >> 8) as u8;
+        let b = ((value & 0x0000_00FF) >> 0) as u8;
 
         png_data.push(r);
         png_data.push(g);

@@ -61,7 +61,7 @@ impl Geometry for Sphere {
 
         let compute_result = |param: f32, hit_info: &mut HitInfo| {
             hit_info.position = ray.point_at(param);
-            hit_info.normal = hit_info.position - &self.center;
+            hit_info.normal = hit_info.position - self.center;
         };
 
         if delta >= 0.0 {

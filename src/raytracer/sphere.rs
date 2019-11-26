@@ -51,7 +51,12 @@ impl Sphere {
 }
 
 impl Geometry for Sphere {
-    fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
+    fn compute_hit(
+        &self,
+        ray: &Ray,
+        hitinfo: Option<&mut HitInfo>,
+        exit_dist: Option<&mut f32>,
+    ) -> Option<f32> {
         let ray_to_sphere = ray.get_origin() - self.center;
         let a = Vec3::dot_product(ray.get_direction(), ray.get_direction());
         let b = Vec3::dot_product(ray.get_direction(), &ray_to_sphere);
@@ -66,25 +71,23 @@ impl Geometry for Sphere {
 
         if delta >= 0.0 {
             let sqr_delta = delta.sqrt();
-            let distance = (-b - sqr_delta) / a;
+            let mut enter_distance = (-b - sqr_delta) / a;
+            let mut exit_distance = (-b + sqr_delta) / a;
 
-            if distance > 0.0 {
-                match hitinfo {
-                    Some(hit_info) => compute_result(distance, hit_info),
-                    _ => (),
-                }
-
-                return Some(distance);
+            if enter_distance > exit_distance {
+                std::mem::swap(&mut enter_distance, &mut exit_distance);
             }
 
-            let distance = (-b + sqr_delta) / a;
-            if distance > 0.0 {
-                match hitinfo {
-                    Some(hit_info) => compute_result(distance, hit_info),
-                    _ => (),
+            if enter_distance >= 0.0 {
+                if let Some(exit_dist) = exit_dist {
+                    *exit_dist = exit_distance
                 }
 
-                return Some(distance);
+                if let Some(hit_info) = hitinfo {
+                    compute_result(enter_distance, hit_info)
+                }
+
+                return Some(enter_distance);
             }
         }
 

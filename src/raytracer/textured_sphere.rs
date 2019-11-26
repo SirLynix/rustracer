@@ -30,8 +30,13 @@ impl TexturedSphere {
 }
 
 impl Geometry for TexturedSphere {
-    fn compute_hit(&self, ray: &Ray, hitinfo: Option<&mut HitInfo>) -> Option<f32> {
-        self.sphere.compute_hit(ray, hitinfo)
+    fn compute_hit(
+        &self,
+        ray: &Ray,
+        hitinfo: Option<&mut HitInfo>,
+        exit_dist: Option<&mut f32>,
+    ) -> Option<f32> {
+        self.sphere.compute_hit(ray, hitinfo, exit_dist)
     }
 
     fn get_color(&self, position: &Vec3) -> (f32, f32, f32) {

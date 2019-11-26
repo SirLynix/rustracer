@@ -3,6 +3,7 @@ use super::geometry::HitInfo;
 use super::light::Light;
 use super::ray::Ray;
 use super::vec3::Vec3;
+use rand::Rng;
 use std::mem;
 
 pub struct Scene {
@@ -29,26 +30,20 @@ fn reflect(r: &Vec3, n: &Vec3) -> Vec3 {
 }
 
 fn refract(i: &Vec3, n: &Vec3, refractive_index: f32) -> Option<Vec3> {
-    let mut cosi = Vec3::dot_product(i, n).max(-1.0).min(1.0);
-    let mut etai = 1.0;
-    let mut etat = refractive_index;
-
-    let mut n = *n;
-    if cosi > 0.0 {
-        mem::swap(&mut etai, &mut etat);
-        n = -n;
-    } else {
-        cosi = -cosi;
-    }
-
-    let ratio = etai / etat;
-
-    let k = 1.0 - ratio * ratio * (1.0 - cosi * cosi);
-    if k > 0.0 {
-        Some(ratio * i - (ratio * cosi + k.sqrt()) * n)
+    let dt = Vec3::dot_product(&i, &n);
+    let discriminant = 1.0 - refractive_index * refractive_index * (1.0 - dt * dt);
+    if discriminant > 0.0 {
+        Some(refractive_index * (i - n * dt) - n * discriminant.sqrt())
     } else {
         None
     }
+}
+
+fn schlick(cosine: f32, refractive_index: f32) -> f32 {
+    let mut r0 = (1.0 - refractive_index) / (1.0 + refractive_index);
+    r0 = r0 * r0;
+
+    r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
 }
 
 fn fresnel(i: &Vec3, n: &Vec3, refractive_index: f32) -> f32 {
@@ -92,7 +87,7 @@ impl Scene {
     pub fn intersect(&self, ray: Ray) -> Option<f32> {
         let mut closest_distance = std::f32::INFINITY;
         for (i, object) in self.objects.iter().enumerate() {
-            match object.compute_hit(&ray, None) {
+            match object.compute_hit(&ray, None, None) {
                 Some(dist) => {
                     if dist < closest_distance {
                         closest_distance = dist
@@ -109,11 +104,11 @@ impl Scene {
         }
     }
 
-    pub fn intersect_dist(&self, ray: Ray, dist: f32) -> bool {
+    pub fn intersect_dist(&self, ray: Ray, dist: f32, min_dist: f32) -> bool {
         for (i, object) in self.objects.iter().enumerate() {
-            match object.compute_hit(&ray, None) {
+            match object.compute_hit(&ray, None, None) {
                 Some(hit_distance) => {
-                    if hit_distance < dist {
+                    if hit_distance < dist && hit_distance > min_dist {
                         return true;
                     }
                 }
@@ -124,9 +119,16 @@ impl Scene {
         false
     }
 
-    pub fn trace(&self, ray: Ray, max_iter: u32) -> (f32, f32, f32, f32) {
+    pub fn trace(
+        &self,
+        rng: &mut rand::XorShiftRng,
+        ray: Ray,
+        max_iter: u32,
+        min_dist: f32,
+    ) -> (f32, f32, f32, f32, f32) {
         let mut closest_object: Option<usize> = None;
         let mut closest_distance = std::f32::INFINITY;
+        let mut closest_exit_distance = std::f32::INFINITY;
         let mut closest_hitinfo = HitInfo {
             position: Vec3::zero(),
             normal: Vec3::zero(),
@@ -138,11 +140,13 @@ impl Scene {
                 normal: Vec3::zero(),
             };
 
-            match object.compute_hit(&ray, Some(&mut hit_info)) {
+            let mut exit_dist = 0f32;
+            match object.compute_hit(&ray, Some(&mut hit_info), Some(&mut exit_dist)) {
                 Some(distance) => {
-                    if distance < closest_distance {
+                    if distance < closest_distance && distance > min_dist {
                         closest_distance = distance;
                         closest_hitinfo = hit_info;
+                        closest_exit_distance = exit_dist;
                         closest_object = Some(i);
                     }
                 }
@@ -178,8 +182,12 @@ impl Scene {
                                     closest_hitinfo.position + reflection * 0.01
                                 };
 
-                            let (hit, reflected_r, reflected_g, reflected_b) =
-                                self.trace(Ray::new(reflection_origin, reflection), max_iter - 1);
+                            let (hit, _, reflected_r, reflected_g, reflected_b) = self.trace(
+                                rng,
+                                Ray::new(reflection_origin, reflection),
+                                max_iter - 1,
+                                0f32,
+                            );
 
                             final_color_r += reflected_r as f32 * reflection_factor;
                             final_color_g += reflected_g as f32 * reflection_factor;
@@ -198,58 +206,64 @@ impl Scene {
                 }
 
                 if max_iter > 0 {
-                    match transparency_factor {
-                        Some(transparency_factor) => {
-                            let (hit, refracted_r, refracted_g, refracted_b) = self.trace(
-                                Ray::new(
-                                    closest_hitinfo.position + ray.get_direction() * 0.01,
-                                    *ray.get_direction(),
-                                ),
-                                max_iter - 1,
-                            );
+                    if let Some(transparency_factor) = transparency_factor {
+                        let mut refractive_index = 1.8;
 
-                            r = refracted_r;
-                            g = refracted_g;
-                            b = refracted_b;
+                        let mut outward_normal = closest_hitinfo.normal;
+                        let cosine;
 
-                            /*let refractive_index = 1.3;
-                            match refract(
-                                &ray.get_direction(),
-                                &closest_hitinfo.normal,
-                                refractive_index,
-                            ) {
-                                Some(mut refraction_dir) => {
-                                    refraction_dir.normalize();
+                        let dot_ray_normal =
+                            Vec3::dot_product(&ray.get_direction(), &closest_hitinfo.normal);
+                        if dot_ray_normal > 0.0 {
+                            outward_normal = -outward_normal;
+                            cosine = refractive_index * dot_ray_normal;
+                        } else {
+                            refractive_index = 1.0 / refractive_index;
+                            cosine = -dot_ray_normal;
+                        }
 
-                                    let refraction_origin = if Vec3::dot_product(
-                                        &refraction_dir,
-                                        &closest_hitinfo.normal,
-                                    ) < 0.0
+                        match refract(&ray.get_direction(), &outward_normal, refractive_index) {
+                            Some(mut refraction_dir) => {
+                                refraction_dir.normalize();
+
+                                let (hit, _, refracted_r, refracted_g, refracted_b) = self.trace(
+                                    rng,
+                                    Ray::new(closest_hitinfo.position, refraction_dir),
+                                    max_iter - 1,
+                                    0.01,
+                                );
+
+                                let reflect_prob = schlick(cosine, refractive_index);
+                                r = r * reflect_prob + refracted_r * (1.0 - reflect_prob);
+                                g = g * reflect_prob + refracted_g * (1.0 - reflect_prob);
+                                b = b * reflect_prob + refracted_b * (1.0 - reflect_prob);
+                                /*let refraction_origin =
+                                    if Vec3::dot_product(&refraction_dir, &closest_hitinfo.normal)
+                                        < 0.0
                                     {
-                                        closest_hitinfo.position - &(refraction_dir * 0.01)
+                                        closest_hitinfo.position - refraction_dir * 0.01
                                     } else {
-                                        closest_hitinfo.position + &(refraction_dir * 0.01)
+                                        closest_hitinfo.position + refraction_dir * 0.01
                                     };
 
-                                    let (hit, refracted_r, refracted_g, refracted_b) = self.trace(
-                                        Ray::new(refraction_origin, refraction_dir),
-                                        max_iter - 1,
-                                    );
+                                let (hit, _, refracted_r, refracted_g, refracted_b) = self.trace(
+                                    Ray::new(refraction_origin, refraction_dir),
+                                    max_iter - 1,
+                                    0.01,
+                                );
 
-                                    let fresnel_factor = fresnel(
-                                        &ray.get_direction(),
-                                        &closest_hitinfo.normal,
-                                        refractive_index,
-                                    );
+                                let fresnel_factor = fresnel(
+                                    &ray.get_direction(),
+                                    &closest_hitinfo.normal,
+                                    refractive_index,
+                                );
 
-                                    r = r * fresnel_factor + refracted_r * (1.0 - fresnel_factor);
-                                    g = g * fresnel_factor + refracted_g * (1.0 - fresnel_factor);
-                                    b = b * fresnel_factor + refracted_b * (1.0 - fresnel_factor);
-                                }
-                                _ => (),
-                            }*/
+                                r = r * fresnel_factor + refracted_r * (1.0 - fresnel_factor);
+                                g = g * fresnel_factor + refracted_g * (1.0 - fresnel_factor);
+                                b = b * fresnel_factor + refracted_b * (1.0 - fresnel_factor);*/
+                            }
+                            _ => (),
                         }
-                        _ => (),
                     }
 
                     for light in self.lights.iter() {
@@ -268,6 +282,7 @@ impl Scene {
                         if self.intersect_dist(
                             Ray::new(closest_hitinfo.position + direction * 0.01, direction),
                             length,
+                            0.0,
                         ) {
                             r *= 0.1;
                             g *= 0.1;
@@ -276,11 +291,11 @@ impl Scene {
                     }
                 }
 
-                (closest_distance, r, g, b)
+                (closest_distance, closest_exit_distance, r, g, b)
             }
             None => {
                 let (r, g, b) = background_color(&ray);
-                (closest_distance, r, g, b)
+                (closest_distance, closest_exit_distance, r, g, b)
             }
         }
     }

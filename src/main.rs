@@ -26,7 +26,7 @@ const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
 const BOX_SIDE: usize = 96;
 const MAX_ITERATION: u32 = 5;
-const RAY_PER_PIXEL: u32 = 100;
+const RAY_PER_PIXEL: u32 = 200;
 const RANDOM_OFFSET_COUNT: usize = RAY_PER_PIXEL as usize * 100;
 
 fn color(r: u8, g: u8, b: u8) -> u32 {
@@ -45,13 +45,16 @@ fn main() {
     });
 
     let origin = Vec3::new(0.0, 0.5, 0.0);
-    let direction = Vec3::new(0.0, 0.0, -1.0);
+    let lookat = Vec3::new(0.0, 0.5, -1.0);
 
     let camera = Arc::new(Camera::new(
         origin,
-        direction,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
         WIDTH as f32 / HEIGHT as f32,
         90.0,
+        0.05,
+        2.0,
     ));
 
     let mut scene = Scene::new();
@@ -164,7 +167,7 @@ fn main() {
                             random_offset = 0;
                         }
 
-                        let ray = camera.get_ray(factor_x, factor_y);
+                        let ray = camera.get_ray(&mut rng, factor_x, factor_y);
                         let (_, _, r, g, b) = scene.trace(&mut rng, ray, MAX_ITERATION, 0f32);
 
                         color_r += r;

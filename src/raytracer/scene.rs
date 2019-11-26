@@ -168,7 +168,19 @@ impl Scene {
                 let (mut r, mut g, mut b): (f32, f32, f32);
                 match reflection_factor {
                     Some(reflection_factor) => {
-                        let reflection = reflect(&-ray.get_direction(), &closest_hitinfo.normal);
+                        let mut reflection =
+                            reflect(&-ray.get_direction(), &closest_hitinfo.normal);
+
+                        let fuzziness = 0.02f32;
+                        if fuzziness > 0.0 {
+                            reflection = reflection
+                                + fuzziness
+                                    * Vec3 {
+                                        x: rng.next_f32() * 2.0 - 1.0,
+                                        y: rng.next_f32() * 2.0 - 1.0,
+                                        z: rng.next_f32() * 2.0 - 1.0,
+                                    };
+                        }
 
                         let mut final_color_r = o_r as f32 * (1.0 - reflection_factor);
                         let mut final_color_g = o_g as f32 * (1.0 - reflection_factor);

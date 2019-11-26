@@ -26,7 +26,7 @@ const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
 const BOX_SIDE: usize = 96;
 const MAX_ITERATION: u32 = 5;
-const RAY_PER_PIXEL: u32 = 1;
+const RAY_PER_PIXEL: u32 = 100;
 const RANDOM_OFFSET_COUNT: usize = RAY_PER_PIXEL as usize * 100;
 
 fn color(r: u8, g: u8, b: u8) -> u32 {
@@ -142,6 +142,8 @@ fn main() {
 
             let mut random_offset = 0usize;
 
+            let mut rng = rand::XorShiftRng::new_unseeded();
+
             for y in 0..buffer_height {
                 let screen_y = (min_y + y) as f32;
                 for x in 0..buffer_width {
@@ -163,7 +165,7 @@ fn main() {
                         }
 
                         let ray = camera.get_ray(factor_x, factor_y);
-                        let (_, r, g, b) = scene.trace(ray, MAX_ITERATION);
+                        let (_, _, r, g, b) = scene.trace(&mut rng, ray, MAX_ITERATION, 0f32);
 
                         color_r += r;
                         color_g += g;

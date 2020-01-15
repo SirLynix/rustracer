@@ -1,3 +1,4 @@
+use super::color::Color;
 use super::geometry::Geometry;
 use super::geometry::HitInfo;
 use super::ray::Ray;
@@ -6,7 +7,7 @@ use super::vec3::Vec3;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Sphere {
     center: Vec3,
-    color: (f32, f32, f32),
+    color: Color,
     radius: f32,
     reflection_factor: Option<f32>,
     transparency_factor: Option<f32>,
@@ -16,7 +17,7 @@ impl Sphere {
     pub fn new(
         center: Vec3,
         radius: f32,
-        color: (f32, f32, f32),
+        color: Color,
         reflection_factor: f32,
         transparency_factor: f32,
     ) -> Sphere {
@@ -41,7 +42,7 @@ impl Sphere {
         self.center
     }
 
-    pub fn get_color(&self) -> (f32, f32, f32) {
+    pub fn get_color(&self) -> Color {
         self.color
     }
 
@@ -94,7 +95,7 @@ impl Geometry for Sphere {
         None
     }
 
-    fn get_color(&self, position: &Vec3) -> (f32, f32, f32) {
+    fn get_color(&self, position: &Vec3) -> Color {
         self.get_color()
     }
 

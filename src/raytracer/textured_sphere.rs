@@ -1,3 +1,4 @@
+use super::color::Color;
 use super::geometry::Geometry;
 use super::geometry::HitInfo;
 use super::ray::Ray;
@@ -13,7 +14,7 @@ impl TexturedSphere {
     pub fn new(
         center: Vec3,
         radius: f32,
-        color: (f32, f32, f32),
+        color: Color,
         reflection_factor: f32,
         transparency_factor: f32,
     ) -> TexturedSphere {
@@ -39,7 +40,7 @@ impl Geometry for TexturedSphere {
         self.sphere.compute_hit(ray, hitinfo, exit_dist)
     }
 
-    fn get_color(&self, position: &Vec3) -> (f32, f32, f32) {
+    fn get_color(&self, position: &Vec3) -> Color {
         let up = Vec3::new(0.0, 1.0, 0.0);
 
         let size = 1.0;
@@ -49,7 +50,11 @@ impl Geometry for TexturedSphere {
         if (position.x.rem_euclid(size) > size / 2.0) ^ is_even {
             self.sphere.get_color()
         } else {
-            (0.0, 0.0, 0.0)
+            Color {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+            }
         }
     }
 

@@ -1,3 +1,4 @@
+use super::color::Color;
 use super::ray::Ray;
 use super::vec3::Vec3;
 
@@ -15,7 +16,7 @@ pub trait Geometry: Sync + Send {
         exit_dist: Option<&mut f32>,
     ) -> Option<f32>;
 
-    fn get_color(&self, position: &Vec3) -> (f32, f32, f32);
+    fn get_color(&self, position: &Vec3) -> Color;
 
     fn get_reflection_factor(&self) -> Option<f32>;
 

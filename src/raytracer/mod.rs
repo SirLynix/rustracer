@@ -1,8 +1,12 @@
 pub mod camera;
+pub mod color;
+pub mod directional_light;
 pub mod geometry;
 pub mod light;
+pub mod point_light;
 pub mod ray;
 pub mod scene;
 pub mod sphere;
+pub mod spot_light;
 pub mod textured_sphere;
 pub mod vec3;

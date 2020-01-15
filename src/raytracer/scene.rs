@@ -1,5 +1,5 @@
-use super::geometry::Geometry;
-use super::geometry::HitInfo;
+use super::color::Color;
+use super::geometry::{Geometry, HitInfo};
 use super::light::Light;
 use super::ray::Ray;
 use super::vec3::Vec3;
@@ -7,11 +7,11 @@ use rand::Rng;
 use std::mem;
 
 pub struct Scene {
-    lights: Vec<Light>,
-    pub objects: Vec<Box<dyn Geometry>>,
+    lights: Vec<Box<dyn Light>>,
+    objects: Vec<Box<dyn Geometry>>,
 }
 
-fn background_color(ray: &Ray) -> (f32, f32, f32) {
+fn background_color(ray: &Ray) -> Color {
     let unit_x = Vec3::new(1.0, 0.0, 0.0);
     let unit_y = Vec3::new(0.0, 1.0, 0.0);
 
@@ -22,7 +22,11 @@ fn background_color(ray: &Ray) -> (f32, f32, f32) {
     let g = (dot_x * 100.0).min(255.0);
     let b = (100.0 + (dot_y * 100.0)).min(255.0);
 
-    (r / 255.0, g / 255.0, b / 255.0)
+    Color {
+        r: r / 255.0,
+        g: g / 255.0,
+        b: b / 255.0,
+    }
 }
 
 fn reflect(r: &Vec3, n: &Vec3) -> Vec3 {
@@ -76,7 +80,7 @@ impl Scene {
         }
     }
 
-    pub fn add_light(&mut self, light: Light) {
+    pub fn add_light(&mut self, light: Box<dyn Light>) {
         self.lights.push(light);
     }
 
@@ -125,7 +129,7 @@ impl Scene {
         ray: Ray,
         max_iter: u32,
         min_dist: f32,
-    ) -> (f32, f32, f32, f32, f32) {
+    ) -> (f32, f32, Color) {
         let mut closest_object: Option<usize> = None;
         let mut closest_distance = std::f32::INFINITY;
         let mut closest_exit_distance = std::f32::INFINITY;
@@ -158,14 +162,19 @@ impl Scene {
             Some(object) => {
                 let object = &self.objects[object];
 
-                let (o_r, o_g, o_b) = object.get_color(&closest_hitinfo.position);
+                let object_color = object.get_color(&closest_hitinfo.position);
 
                 let reflection_factor = object.get_reflection_factor();
                 let transparency_factor = object.get_transparency_factor();
 
                 closest_hitinfo.normal.normalize();
 
-                let (mut r, mut g, mut b): (f32, f32, f32);
+                let mut color = Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                };
+
                 match reflection_factor {
                     Some(reflection_factor) => {
                         let mut reflection =
@@ -182,9 +191,9 @@ impl Scene {
                                     };
                         }
 
-                        let mut final_color_r = o_r as f32 * (1.0 - reflection_factor);
-                        let mut final_color_g = o_g as f32 * (1.0 - reflection_factor);
-                        let mut final_color_b = o_b as f32 * (1.0 - reflection_factor);
+                        let mut final_color_r = object_color.r as f32 * (1.0 - reflection_factor);
+                        let mut final_color_g = object_color.g as f32 * (1.0 - reflection_factor);
+                        let mut final_color_b = object_color.b as f32 * (1.0 - reflection_factor);
 
                         if max_iter > 0 {
                             let reflection_origin =
@@ -194,26 +203,24 @@ impl Scene {
                                     closest_hitinfo.position + reflection * 0.01
                                 };
 
-                            let (hit, _, reflected_r, reflected_g, reflected_b) = self.trace(
+                            let (hit, _, reflected_color) = self.trace(
                                 rng,
                                 Ray::new(reflection_origin, reflection),
                                 max_iter - 1,
                                 0f32,
                             );
 
-                            final_color_r += reflected_r as f32 * reflection_factor;
-                            final_color_g += reflected_g as f32 * reflection_factor;
-                            final_color_b += reflected_b as f32 * reflection_factor;
+                            final_color_r += reflected_color.r as f32 * reflection_factor;
+                            final_color_g += reflected_color.g as f32 * reflection_factor;
+                            final_color_b += reflected_color.b as f32 * reflection_factor;
                         }
 
-                        r = final_color_r;
-                        g = final_color_g;
-                        b = final_color_b;
+                        color.r = final_color_r;
+                        color.g = final_color_g;
+                        color.b = final_color_b;
                     }
                     _ => {
-                        r = o_r;
-                        g = o_g;
-                        b = o_b;
+                        color = object_color;
                     }
                 }
 
@@ -238,7 +245,7 @@ impl Scene {
                             Some(mut refraction_dir) => {
                                 refraction_dir.normalize();
 
-                                let (hit, _, refracted_r, refracted_g, refracted_b) = self.trace(
+                                let (hit, _, refracted_color) = self.trace(
                                     rng,
                                     Ray::new(closest_hitinfo.position, refraction_dir),
                                     max_iter - 1,
@@ -246,9 +253,12 @@ impl Scene {
                                 );
 
                                 let reflect_prob = schlick(cosine, refractive_index);
-                                r = r * reflect_prob + refracted_r * (1.0 - reflect_prob);
-                                g = g * reflect_prob + refracted_g * (1.0 - reflect_prob);
-                                b = b * reflect_prob + refracted_b * (1.0 - reflect_prob);
+                                color.r = color.r * reflect_prob
+                                    + refracted_color.r * (1.0 - reflect_prob);
+                                color.g = color.g * reflect_prob
+                                    + refracted_color.g * (1.0 - reflect_prob);
+                                color.b = color.b * reflect_prob
+                                    + refracted_color.b * (1.0 - reflect_prob);
                                 /*let refraction_origin =
                                     if Vec3::dot_product(&refraction_dir, &closest_hitinfo.normal)
                                         < 0.0
@@ -279,35 +289,15 @@ impl Scene {
                     }
 
                     for light in self.lights.iter() {
-                        let mut direction = light.get_position() - closest_hitinfo.position;
-                        let mut length = 0.0;
-
-                        direction.normalize_out_length(&mut length);
-
-                        let diffuse_factor =
-                            Vec3::dot_product(&direction, &closest_hitinfo.normal).max(0.0);
-
-                        r *= diffuse_factor;
-                        g *= diffuse_factor;
-                        b *= diffuse_factor;
-
-                        if self.intersect_dist(
-                            Ray::new(closest_hitinfo.position + direction * 0.01, direction),
-                            length,
-                            0.0,
-                        ) {
-                            r *= 0.1;
-                            g *= 0.1;
-                            b *= 0.1;
-                        }
+                        light.compute_light(&self, &closest_hitinfo, &mut color, &ray);
                     }
                 }
 
-                (closest_distance, closest_exit_distance, r, g, b)
+                (closest_distance, closest_exit_distance, color)
             }
             None => {
-                let (r, g, b) = background_color(&ray);
-                (closest_distance, closest_exit_distance, r, g, b)
+                let color = background_color(&ray);
+                (closest_distance, closest_exit_distance, color)
             }
         }
     }

@@ -13,9 +13,12 @@ use std::path::Path;
 // To use encoder.set()
 use rand::Rng;
 use raytracer::camera::Camera;
-use raytracer::light::Light;
+use raytracer::color::Color;
+use raytracer::directional_light::DirectionalLight;
+use raytracer::point_light::PointLight;
 use raytracer::scene::Scene;
 use raytracer::sphere::Sphere;
+use raytracer::spot_light::SpotLight;
 use raytracer::textured_sphere::TexturedSphere;
 use raytracer::vec3::Vec3;
 use std::sync::mpsc::channel;
@@ -59,13 +62,41 @@ fn main() {
 
     let mut scene = Scene::new();
 
-    scene.add_light(Light::new(origin + Vec3::new(0.0, 1.5, 1.0)));
+    /*scene.add_light(Box::new(DirectionalLight::new(
+        Vec3::new(0.0, -1.0, -1.0),
+        (1.0, 1.0, 1.0),
+    )));*/
+
+    scene.add_light(Box::new(PointLight::new(
+        Vec3::new(0.0, 1.5, -1.0),
+        (1.0, 1.0, 1.0),
+        0.9,
+        15.0,
+    )));
+
+    /*scene.add_light(Box::new(SpotLight::new(
+        Vec3::new(0.0, 5.0, 0.0),
+        Vec3::new(0.0, -1.0, 0.0),
+        Color {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+        },
+        0.9,
+        15.0,
+        15.0,
+        20.0,
+    )));*/
 
     // Ground
     scene.add_object(Box::new(TexturedSphere::new(
         Vec3::new(0.0, -10000.0, -1.0),
         10000.0,
-        (1.0, 1.0, 1.0),
+        Color {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+        },
         0.2,
         0.0,
     )));
@@ -74,7 +105,11 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(-1.5, 0.5, -1.0),
         0.5,
-        (0.0, 0.0, 0.0),
+        Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+        },
         0.9,
         0.0,
     )));
@@ -83,7 +118,11 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(0.0, 0.75, -2.5),
         0.75,
-        (1.0, 1.0, 0.0),
+        Color {
+            r: 1.0,
+            g: 1.0,
+            b: 0.0,
+        },
         0.5,
         0.0,
     )));
@@ -92,7 +131,11 @@ fn main() {
     scene.add_object(Box::new(Sphere::new(
         Vec3::new(1.5, 0.5, -1.0),
         0.5,
-        (1.0, 0.0, 0.0),
+        Color {
+            r: 1.0,
+            g: 0.0,
+            b: 0.0,
+        },
         0.2,
         0.0,
     )));
@@ -168,11 +211,11 @@ fn main() {
                         }
 
                         let ray = camera.get_ray(&mut rng, factor_x, factor_y);
-                        let (_, _, r, g, b) = scene.trace(&mut rng, ray, MAX_ITERATION, 0f32);
+                        let (_, _, trace_color) = scene.trace(&mut rng, ray, MAX_ITERATION, 0f32);
 
-                        color_r += r;
-                        color_g += g;
-                        color_b += b;
+                        color_r += trace_color.r;
+                        color_g += trace_color.g;
+                        color_b += trace_color.b;
                     }
 
                     color_r /= RAY_PER_PIXEL as f32;

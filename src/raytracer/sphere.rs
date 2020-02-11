@@ -1,3 +1,4 @@
+use super::aabb::AABB;
 use super::color::Color;
 use super::geometry::Geometry;
 use super::geometry::HitInfo;
@@ -93,6 +94,14 @@ impl Geometry for Sphere {
         }
 
         None
+    }
+
+    fn get_aabb(&self) -> AABB {
+        let radius3 = Vec3::new_single(self.radius);
+        let maxs = self.center + radius3;
+        let mins = self.center - radius3;
+
+        AABB::new(mins, maxs)
     }
 
     fn get_color(&self, position: &Vec3) -> Color {

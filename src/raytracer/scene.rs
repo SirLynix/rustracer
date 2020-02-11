@@ -1,14 +1,18 @@
+use super::aabb::AABB;
 use super::color::Color;
 use super::geometry::{Geometry, HitInfo};
 use super::light::Light;
+use super::octree::Octree;
 use super::ray::Ray;
 use super::vec3::Vec3;
 use rand::Rng;
 use std::mem;
+use std::sync::Arc;
 
 pub struct Scene {
-    lights: Vec<Box<dyn Light>>,
-    objects: Vec<Box<dyn Geometry>>,
+    lights: Vec<Arc<dyn Light>>,
+    objects: Vec<Arc<dyn Geometry>>,
+    octree: Option<Octree>,
 }
 
 fn background_color(ray: &Ray) -> Color {
@@ -77,15 +81,27 @@ impl Scene {
         Scene {
             lights: Vec::new(),
             objects: Vec::new(),
+            octree: None,
         }
     }
 
-    pub fn add_light(&mut self, light: Box<dyn Light>) {
+    pub fn add_light(&mut self, light: Arc<dyn Light>) {
         self.lights.push(light);
     }
 
-    pub fn add_object(&mut self, object: Box<dyn Geometry>) {
+    pub fn add_object(&mut self, object: Arc<dyn Geometry>) {
         self.objects.push(object);
+    }
+
+    pub fn build_octree(&mut self) {
+        let mut octree = Octree::new();
+        for object in self.objects.iter() {
+            octree.add_object(object.clone());
+        }
+
+        octree.subdivide_until_recurse(1);
+
+        self.octree = Some(octree);
     }
 
     pub fn intersect(&self, ray: Ray) -> Option<f32> {

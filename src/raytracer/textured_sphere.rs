@@ -1,3 +1,4 @@
+use super::aabb::AABB;
 use super::color::Color;
 use super::geometry::Geometry;
 use super::geometry::HitInfo;
@@ -56,6 +57,10 @@ impl Geometry for TexturedSphere {
                 b: 0.0,
             }
         }
+    }
+
+    fn get_aabb(&self) -> AABB {
+        self.sphere.get_aabb()
     }
 
     fn get_reflection_factor(&self) -> Option<f32> {

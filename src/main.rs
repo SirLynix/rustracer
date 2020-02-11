@@ -67,7 +67,7 @@ fn main() {
         (1.0, 1.0, 1.0),
     )));*/
 
-    scene.add_light(Box::new(PointLight::new(
+    scene.add_light(Arc::new(PointLight::new(
         Vec3::new(0.0, 1.5, -1.0),
         (1.0, 1.0, 1.0),
         0.9,
@@ -89,7 +89,7 @@ fn main() {
     )));*/
 
     // Ground
-    scene.add_object(Box::new(TexturedSphere::new(
+    scene.add_object(Arc::new(TexturedSphere::new(
         Vec3::new(0.0, -10000.0, -1.0),
         10000.0,
         Color {
@@ -102,7 +102,7 @@ fn main() {
     )));
 
     // Left - Black
-    scene.add_object(Box::new(Sphere::new(
+    scene.add_object(Arc::new(Sphere::new(
         Vec3::new(-1.5, 0.5, -1.0),
         0.5,
         Color {
@@ -114,8 +114,21 @@ fn main() {
         0.0,
     )));
 
+    // Joseph
+    scene.add_object(Arc::new(Sphere::new(
+        Vec3::new(-500f32, 500f32, -500.0f32),
+        0.5,
+        Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+        },
+        0.9,
+        0.0,
+    )));
+
     // Middle - Yellow
-    scene.add_object(Box::new(Sphere::new(
+    scene.add_object(Arc::new(Sphere::new(
         Vec3::new(0.0, 0.75, -2.5),
         0.75,
         Color {
@@ -128,7 +141,7 @@ fn main() {
     )));
 
     // Right - Red
-    scene.add_object(Box::new(Sphere::new(
+    scene.add_object(Arc::new(Sphere::new(
         Vec3::new(1.5, 0.5, -1.0),
         0.5,
         Color {
@@ -139,6 +152,8 @@ fn main() {
         0.2,
         0.0,
     )));
+
+    scene.build_octree();
 
     let scene = Arc::new(scene);
 

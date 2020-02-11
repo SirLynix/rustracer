@@ -12,6 +12,14 @@ impl Vec3 {
         Vec3 { x, y, z }
     }
 
+    pub fn new_single(val: f32) -> Vec3 {
+        Vec3 {
+            x: val,
+            y: val,
+            z: val,
+        }
+    }
+
     pub fn zero() -> Vec3 {
         Vec3 {
             x: 0f32,

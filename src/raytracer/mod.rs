@@ -1,8 +1,10 @@
+pub mod aabb;
 pub mod camera;
 pub mod color;
 pub mod directional_light;
 pub mod geometry;
 pub mod light;
+pub mod octree;
 pub mod point_light;
 pub mod ray;
 pub mod scene;

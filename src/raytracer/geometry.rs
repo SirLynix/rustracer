@@ -1,3 +1,4 @@
+use super::aabb::AABB;
 use super::color::Color;
 use super::ray::Ray;
 use super::vec3::Vec3;
@@ -15,6 +16,8 @@ pub trait Geometry: Sync + Send {
         hitinfo: Option<&mut HitInfo>,
         exit_dist: Option<&mut f32>,
     ) -> Option<f32>;
+
+    fn get_aabb(&self) -> AABB;
 
     fn get_color(&self, position: &Vec3) -> Color;
 

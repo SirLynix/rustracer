@@ -16,12 +16,9 @@ impl AABB {
     }
 
     pub fn contains_point(&self, other: &Vec3) -> bool {
-        self.mins.x >= other.x
-            && self.maxs.x <= other.x
-            && self.mins.y >= other.y
-            && self.maxs.y <= other.y
-            && self.mins.z >= other.z
-            && self.maxs.z <= other.z
+        other.x >= self.mins.x && other.x <= self.maxs.x &&
+        other.y >= self.mins.y && other.y <= self.maxs.y &&
+        other.z >= self.mins.z && other.z <= self.maxs.z
     }
 
     pub fn extend_to(&mut self, other: &AABB) {
